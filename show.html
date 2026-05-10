@@ -594,7 +594,8 @@
   function getEpType(ep) {
     if (ep.type) return ep.type;
     if (ep.url?.includes('ojamajo.moe/videos/watch')) return 'redirect';
-    if (ep.url?.endsWith('.mp4') && !ep.url.includes('archive.org')) return 'mp4';
+    // if (ep.url?.endsWith('.mp4')) return 'mp4';
+    if (ep.url?.endsWith('.mp4') && !ep.url.includes('archive.org/embed')) return 'mp4';
     return 'embed';
   }
 
