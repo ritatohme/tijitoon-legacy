@@ -20693,5 +20693,147 @@
         ]
       }
     ]
+  },
+  "charlotte-aux-fraises": {
+    "title": "Charlotte aux Fraises",
+    "channel": "tiji",
+    "years": null,
+    "tag": "KIDS",
+    "seasons": [
+      {
+        "num": 1,
+        "name": "Saison 1",
+        "episodes": [
+          {
+            "num": 1,
+            "title": "Épisode 1",
+            "url": "https://geo.dailymotion.com/player.html?video=xa9j2q2"
+          },
+          {
+            "num": 2,
+            "title": "Épisode 2",
+            "url": "https://youtube.com/embed/_Ez5ywv5Qp0"
+          },
+          {
+            "num": 3,
+            "title": "Épisode 3",
+            "url": "https://geo.dailymotion.com/player.html?video=xa9j396"
+          },
+          {
+            "num": 4,
+            "title": "Épisode 4",
+            "url": "https://youtube.com/embed/Ief_zHcDSzc"
+          }
+        ]
+      },
+      {
+        "num": 2,
+        "name": "Saison 2",
+        "episodes": [
+          {
+            "num": 1,
+            "title": "Épisode 1",
+            "url": "https://youtube.com/embed/hklIqmfBPm0"
+          },
+          {
+            "num": 2,
+            "title": "Épisode 2",
+            "url": "https://youtube.com/embed/dFNZGrX6GG0"
+          },
+          {
+            "num": 3,
+            "title": "Épisode 3",
+            "url": "https://youtube.com/embed/Ta4fG8bDFOU"
+          },
+          {
+            "num": 4,
+            "title": "Épisode 4",
+            "url": "https://youtube.com/embed/90TDYsv-Xhs"
+          },
+          {
+            "num": 5,
+            "title": "Épisode 5",
+            "url": "https://youtube.com/embed/qsOO6KC2M-4"
+          },
+          {
+            "num": 6,
+            "title": "Épisode 6",
+            "url": "https://youtube.com/embed/Wf_9bc2NaAA"
+          }
+        ]
+      },
+      {
+        "num": 3,
+        "name": "Saison 3",
+        "episodes": [
+          {
+            "num": 1,
+            "title": "Épisode 1",
+            "url": "https://youtube.com/embed/GCCoLLS1kFw"
+          },
+          {
+            "num": 2,
+            "title": "Épisode 2",
+            "url": "https://youtube.com/embed/dNfW3iOfm0I"
+          },
+          {
+            "num": 3,
+            "title": "Épisode 3",
+            "url": "https://youtube.com/embed/ttEHB2KNihM"
+          },
+          {
+            "num": 4,
+            "title": "Épisode 4",
+            "url": "https://youtube.com/embed/AQFsYw0wFnY"
+          },
+          {
+            "num": 5,
+            "title": "Épisode 5",
+            "url": "https://youtube.com/embed/jxcjDSHrJEY"
+          }
+        ]
+      },
+      {
+        "num": 4,
+        "name": "Saison 4",
+        "episodes": [
+          {
+            "num": 1,
+            "title": "Épisode 1",
+            "url": "https://youtube.com/embed/1vHosb3zA2Q"
+          },
+          {
+            "num": 2,
+            "title": "Épisode 2",
+            "url": "https://youtube.com/embed/KbFoZV4g6O0"
+          },
+          {
+            "num": 3,
+            "title": "Épisode 3",
+            "url": "https://youtube.com/embed/Bow0cFE6PcI"
+          },
+          {
+            "num": 4,
+            "title": "Épisode 4",
+            "url": "https://youtube.com/embed/R7Mqm89QgRQ"
+          },
+          {
+            "num": 5,
+            "title": "Épisode 5",
+            "url": "https://youtube.com/embed/uSdX_AFNxm0"
+          },
+          {
+            "num": 6,
+            "title": "Épisode 6",
+            "url": "https://youtube.com/embed/RbXvrD9pe8U"
+          },
+          {
+            "num": 7,
+            "title": "Épisode 7",
+            "url": "https://youtube.com/embed/iWv7QWJRk6M"
+          }
+        ]
+      }
+    ]
   }
 }
