@@ -961,7 +961,7 @@
       placeholder.style.display = 'flex';
       placeholder.innerHTML = `
         <div class="pl-ep-label">S${seasonIdx + 1} — Épisode ${ep.num}</div>
-        <a class="player-external-link" href="${ep.url}" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-play"></i> Regarder sur ojamajo.moe</a>`;
+        <a class="player-external-link" href="${ep.url}" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-play"></i> Regarder sur ${new URL(ep.url).hostname}</a>`;
     } else if (type === 'mp4') {
       const src = ep.odysee ? odycdnProxyUrl(ep.url) : ep.url;
       video.src = src; video.style.display = 'block';
