@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
 <title>Tijitoon — Série</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1037,7 +1038,10 @@
       video.style.display = 'block';
       if (Hls.isSupported()) {
         const hls = new Hls();
-        hls.loadSource(ep.url);
+        const src = ep.url.includes('senpai-stream.club')
+          ? `https://loud-ape-44.roughrecipe.deno.net/?url=${encodeURIComponent(ep.url)}`
+          : ep.url;
+        hls.loadSource(src);
         hls.attachMedia(video);
         hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, () => {
           const frTrack = hls.audioTracks.findIndex(t =>
