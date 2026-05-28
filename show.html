@@ -652,7 +652,9 @@
   const DEFAULT_SANDBOX = 'allow-scripts allow-same-origin allow-popups allow-presentation';
 
   // const ODYCDN_PROXY_URL = 'https://great-lorikeet-66.roughrecipe.deno.net/'; // deno fallback
-  const ODYCDN_PROXY_URL = 'https://crimson-night-b851.ritatohme99.workers.dev/';
+  const CRIMSON_WORKER_URL = 'https://crimson-night-b851.ritatohme99.workers.dev';
+  const ODYCDN_PROXY_URL   = CRIMSON_WORKER_URL + '/';
+  const SENPAI_PROXY_URL   = 'https://loud-ape-44.roughrecipe.deno.net';
 
   function odycdnProxyUrl(mp4Url) {
     return ODYCDN_PROXY_URL + '?url=' + encodeURIComponent(mp4Url);
@@ -661,6 +663,7 @@
   function getEpType(ep) {
     if (ep.type) return ep.type;
     if (ep.url?.includes('ojamajo.moe/videos/watch')) return 'redirect';
+    if (ep.url?.includes('uqload.is/embed-')) return 'uqload';
     // if (ep.url?.endsWith('.mp4')) return 'mp4';
     if (ep.url?.endsWith('.mp4') && !ep.url.includes('archive.org/embed')) return 'mp4';
     if (ep.url?.endsWith('.m3u8')) return 'm3u8';
@@ -1012,6 +1015,27 @@
     iframe.style.transform = '';
   }
 
+  function playM3u8(src) {
+    video.style.display = 'block';
+    if (Hls.isSupported()) {
+      const hls = new Hls();
+      hls.loadSource(src);
+      hls.attachMedia(video);
+      hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, () => {
+        const frTrack = hls.audioTracks.findIndex(t =>
+          t.lang === 'fr' || /^fr/i.test(t.lang) || /vf|fra$|français|french/i.test(t.name)
+        );
+        if (frTrack !== -1) {
+          hls.audioTrack = frTrack;
+          setTimeout(() => { hls.audioTrack = frTrack; }, 300);
+        }
+        if (hls.audioTracks.length > 1) buildAudioMenu(hls.audioTracks, hls);
+      });
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = src;
+    }
+  }
+
   function loadEpisode(ep, seasonIdx) {
     iframe.style.display = 'none'; iframe.src = '';
     video.style.display  = 'none'; video.src  = '';
@@ -1026,7 +1050,20 @@
 
     const type = getEpType(ep);
 
-    if (type === 'redirect') {
+    if (type === 'uqload') {
+      const id = ep.url.match(/embed-([a-z0-9]+)\.html/)?.[1];
+      if (!id) { showNoVideo(ep, seasonIdx); return; }
+      placeholder.style.display = 'flex';
+      placeholder.innerHTML = `<div class="pl-hint">Chargement…</div>`;
+      fetch(`${CRIMSON_WORKER_URL}/uqload?id=${id}`)
+        .then(r => r.json())
+        .then(({ url: m3u8url }) => {
+          if (!m3u8url) { showNoVideo(ep, seasonIdx); return; }
+          placeholder.style.display = 'none';
+          playM3u8(m3u8url);
+        })
+        .catch(() => showNoVideo(ep, seasonIdx));
+    } else if (type === 'redirect') {
       placeholder.style.display = 'flex';
       placeholder.innerHTML = `
         <div class="pl-ep-label">S${seasonIdx + 1} — Épisode ${ep.num}</div>
@@ -1035,27 +1072,10 @@
       const src = (ep.odysee || ep.url.includes('player.odycdn.com')) ? odycdnProxyUrl(ep.url) : ep.url;
       video.src = src; video.style.display = 'block';
     } else if (type === 'm3u8') {
-      video.style.display = 'block';
-      if (Hls.isSupported()) {
-        const hls = new Hls();
-        const src = ep.url.includes('senpai-stream.club')
-          ? `https://loud-ape-44.roughrecipe.deno.net/?url=${encodeURIComponent(ep.url)}`
-          : ep.url;
-        hls.loadSource(src);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, () => {
-          const frTrack = hls.audioTracks.findIndex(t =>
-            t.lang === 'fr' || /^fr/i.test(t.lang) || /vf|fra$|français|french/i.test(t.name)
-          );
-          if (frTrack !== -1) {
-            hls.audioTrack = frTrack;
-            setTimeout(() => { hls.audioTrack = frTrack; }, 300);
-          }
-          if (hls.audioTracks.length > 1) buildAudioMenu(hls.audioTracks, hls);
-        });
-      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = ep.url;
-      }
+      const src = ep.url.includes('senpai-stream.club')
+        ? `${SENPAI_PROXY_URL}/?url=${encodeURIComponent(ep.url)}`
+        : ep.url;
+      playM3u8(src);
     } else {
       const host = new URL(ep.url).hostname;
       iframe.setAttribute('sandbox', SANDBOX_PERMISSIONS[host] ?? DEFAULT_SANDBOX);

@@ -513,6 +513,9 @@
   function tagCls(tag) {
     return {ANIME:'anime',FR:'fr',KIDS:'kids','★':'tod',TOON:'toon'}[tag] || 'toon';
   }
+  function chLabel(channel) {
+    return channel === 'tiji' ? 'Tiji' : 'Télétoon';
+  }
 
   // ── STATE ──────────────────────────────────────────────
   let allEntries = [];
@@ -608,7 +611,7 @@
         <div class="cw-card-title">${show.title}</div>
         <div class="cw-meta">
           <span class="ep-badge">${label}</span>
-          <span class="ch-mini ${show.channel}">${show.channel === 'tiji' ? 'Tiji' : 'Télétoon'}</span>
+          <span class="ch-mini ${show.channel}">${chLabel(show.channel)}</span>
         </div>`;
 
       card.appendChild(removeBtn);
@@ -644,7 +647,7 @@
       <div class="card-title">${show.title}</div>
       <div class="card-bottom">
         ${show.tag ? `<span class="card-tag ${tagCls(show.tag)}">${show.tag}</span>` : ''}
-        <span class="card-ch ${show.channel}">${show.channel === 'tiji' ? 'Tiji' : 'Télétoon'}</span>
+        <span class="card-ch ${show.channel}">${chLabel(show.channel)}</span>
       </div>`;
     el.addEventListener('click', () => {
       window.location.href = `show.html?series=${encodeURIComponent(id)}`;
@@ -662,7 +665,7 @@
       <span class="trow-num">${String(idx + 1).padStart(2,'0')}</span>
       <span class="trow-title">${show.title}</span>
       <span class="trow-tag ${tagCls(show.tag || '')}">${show.tag || '—'}</span>
-      <span class="trow-ch ${show.channel}">${show.channel === 'tiji' ? 'Tiji' : 'Télétoon'}</span>`;
+      <span class="trow-ch ${show.channel}">${chLabel(show.channel)}</span>`;
     return el;
   }
 
@@ -718,16 +721,13 @@
     document.getElementById('btn-list').classList.toggle('active', !isCards);
   }
 
-  document.getElementById('btn-cards').addEventListener('click', () => {
-    viewMode = 'cards';
-    localStorage.setItem('tijitoon_view', viewMode);
+  function setView(mode) {
+    viewMode = mode;
+    localStorage.setItem('tijitoon_view', mode);
     applyView();
-  });
-  document.getElementById('btn-list').addEventListener('click', () => {
-    viewMode = 'list';
-    localStorage.setItem('tijitoon_view', viewMode);
-    applyView();
-  });
+  }
+  document.getElementById('btn-cards').addEventListener('click', () => setView('cards'));
+  document.getElementById('btn-list').addEventListener('click', () => setView('list'));
 
   // ── FILTER BUTTON TOGGLE ──────────────────────────────
   const filterBtn = document.getElementById('filter-btn');
