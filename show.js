@@ -159,10 +159,16 @@ fsExit.addEventListener('click', exitFakeFs);
 // END TODO TEMP
 
 const SANDBOX_PERMISSIONS = {
-  'ojamajo.moe':   'allow-scripts allow-popups allow-forms',
-  'archive.org':   'allow-scripts allow-same-origin allow-popups allow-forms allow-presentation',
+  'ojamajo.moe':        'allow-scripts allow-popups allow-forms',
+  'archive.org':        'allow-scripts allow-same-origin allow-popups allow-forms allow-presentation',
+  'mhd.seekplayer.me':  '',
 };
 const DEFAULT_SANDBOX = 'allow-scripts allow-same-origin allow-popups allow-presentation';
+
+// Hash-routed SPA embeds: the player reads the video id from location.hash, so
+// changing only the #hash never reloads the iframe. These hosts need a
+// cache-busted, full-document reload on every episode switch (see loadEpisode).
+const HASH_ROUTED_HOSTS = new Set(['mhd.seekplayer.me']);
 
 // const ODYCDN_PROXY_URL = 'https://great-lorikeet-66.roughrecipe.deno.net/'; // deno fallback
 const CRIMSON_WORKER_URL = 'https://crimson-night-b851.ritatohme99.workers.dev';
@@ -567,7 +573,7 @@ let loadGen = 0;
 function loadEpisode(ep, seasonIdx) {
   const gen = ++loadGen;
   if (activeHls) { activeHls.destroy(); activeHls = null; }
-  iframe.style.display = 'none'; iframe.src = '';
+  iframe.style.display = 'none'; iframe.src = 'about:blank';
   video.style.display  = 'none'; video.src  = '';
   hideAudioMenu();
   placeholder.style.display = 'none';
@@ -629,8 +635,21 @@ function loadEpisode(ep, seasonIdx) {
     playM3u8(src);
   } else {
     const host = epUrl.hostname;
-    iframe.setAttribute('sandbox', SANDBOX_PERMISSIONS[host] ?? DEFAULT_SANDBOX);
-    iframe.src = ep.url;
+    const sandboxVal = SANDBOX_PERMISSIONS[host] ?? DEFAULT_SANDBOX;
+    if (sandboxVal) iframe.setAttribute('sandbox', sandboxVal);
+    else iframe.removeAttribute('sandbox');
+    // Some embeds are hash-routed SPAs (e.g. seekplayer): changing only the
+    // #hash doesn't reload the iframe, so switching episodes silently no-ops.
+    // Force a fresh document: cache-bust the URL and assign it on the next
+    // frame, after the about:blank reset above has committed.
+    let embedUrl = ep.url;
+    if (HASH_ROUTED_HOSTS.has(host)) {
+      const bust = (epUrl.search ? '&' : '?') + '_=' + Date.now();
+      embedUrl = epUrl.origin + epUrl.pathname + epUrl.search + bust + epUrl.hash;
+      requestAnimationFrame(() => { if (gen === loadGen) iframe.src = embedUrl; });
+    } else {
+      iframe.src = embedUrl;
+    }
     iframe.style.display = 'block';
     fsBtn.style.display = (isIOS && host === 'drive.google.com') ? 'inline-block' : 'none'; // TODO TEMP
     if (host === 'mega.nz') {
