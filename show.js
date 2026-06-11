@@ -161,19 +161,13 @@ fsExit.addEventListener('click', exitFakeFs);
 const SANDBOX_PERMISSIONS = {
   'ojamajo.moe':        'allow-scripts allow-popups allow-forms',
   'archive.org':        'allow-scripts allow-same-origin allow-popups allow-forms allow-presentation',
-  'mhd.seekplayer.me':  '',
 };
 const DEFAULT_SANDBOX = 'allow-scripts allow-same-origin allow-popups allow-presentation';
-
-// Hash-routed SPA embeds: the player reads the video id from location.hash, so
-// changing only the #hash never reloads the iframe. These hosts need a
-// cache-busted, full-document reload on every episode switch (see loadEpisode).
-const HASH_ROUTED_HOSTS = new Set(['mhd.seekplayer.me']);
 
 // const ODYCDN_PROXY_URL = 'https://great-lorikeet-66.roughrecipe.deno.net/'; // deno fallback
 const CRIMSON_WORKER_URL = 'https://crimson-night-b851.ritatohme99.workers.dev';
 const ODYCDN_PROXY_URL   = CRIMSON_WORKER_URL + '/';
-const SENPAI_PROXY_URL   = 'https://loud-ape-44.roughrecipe.deno.net';
+const LOUDAPE_PROXY_URL   = 'https://loud-ape-44.roughrecipe.deno.net';
 
 function odycdnProxyUrl(mp4Url) {
   return ODYCDN_PROXY_URL + '?url=' + encodeURIComponent(mp4Url);
@@ -181,6 +175,7 @@ function odycdnProxyUrl(mp4Url) {
 
 function getEpType(ep) {
   if (ep.type) return ep.type;
+  if (ep.url?.includes('mhd.seekplayer.me')) return 'seekplayer';
   if (ep.url?.includes('ojamajo.moe/videos/watch')) return 'redirect';
   if (ep.url?.includes('uqload.is/embed-')) return 'uqload';
   if (ep.url?.includes('pcloud.link/publink') || ep.url?.includes('pcloud.com/publink')) return 'pcloud';
@@ -625,12 +620,15 @@ function loadEpisode(ep, seasonIdx) {
     placeholder.innerHTML = `
       <div class="pl-ep-label">S${seasonIdx + 1} — Épisode ${esc(ep.num)}</div>
       <a class="player-external-link" href="${esc(ep.url)}" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-play"></i> Regarder sur ${esc(epUrl.hostname)}</a>`;
+  } else if (type === 'seekplayer') {
+    const id = epUrl.hash.slice(1);
+    playM3u8(`${LOUDAPE_PROXY_URL}/?id=${encodeURIComponent(id)}`);
   } else if (type === 'mp4') {
     const src = (ep.odysee || ep.url.includes('player.odycdn.com')) ? odycdnProxyUrl(ep.url) : ep.url;
     video.src = src; video.style.display = 'block';
   } else if (type === 'm3u8') {
     const src = ep.url.includes('senpai-stream.club')
-      ? `${SENPAI_PROXY_URL}/?url=${encodeURIComponent(ep.url)}`
+      ? `${LOUDAPE_PROXY_URL}/?url=${encodeURIComponent(ep.url)}`
       : ep.url;
     playM3u8(src);
   } else {
@@ -638,18 +636,7 @@ function loadEpisode(ep, seasonIdx) {
     const sandboxVal = SANDBOX_PERMISSIONS[host] ?? DEFAULT_SANDBOX;
     if (sandboxVal) iframe.setAttribute('sandbox', sandboxVal);
     else iframe.removeAttribute('sandbox');
-    // Some embeds are hash-routed SPAs (e.g. seekplayer): changing only the
-    // #hash doesn't reload the iframe, so switching episodes silently no-ops.
-    // Force a fresh document: cache-bust the URL and assign it on the next
-    // frame, after the about:blank reset above has committed.
-    let embedUrl = ep.url;
-    if (HASH_ROUTED_HOSTS.has(host)) {
-      const bust = (epUrl.search ? '&' : '?') + '_=' + Date.now();
-      embedUrl = epUrl.origin + epUrl.pathname + epUrl.search + bust + epUrl.hash;
-      requestAnimationFrame(() => { if (gen === loadGen) iframe.src = embedUrl; });
-    } else {
-      iframe.src = embedUrl;
-    }
+    iframe.src = ep.url;
     iframe.style.display = 'block';
     fsBtn.style.display = (isIOS && host === 'drive.google.com') ? 'inline-block' : 'none'; // TODO TEMP
     if (host === 'mega.nz') {
