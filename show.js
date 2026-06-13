@@ -178,6 +178,7 @@ function odycdnProxyUrl(mp4Url) {
 function getEpType(ep) {
   if (ep.type) return ep.type;
   if (ep.url?.includes('mhd.seekplayer.me')) return 'seekplayer';
+  if (ep.url?.includes('embedseek.com')) return 'embedseek';
   if (ep.url?.includes('player.ojamajo.moe/videos/watch')) return 'ojamajo';
   if (ep.url?.includes('uqload.is/embed-')) return 'uqload';
   if (ep.url?.includes('vidmoly.biz/embed-')) return 'vidmoly';
@@ -639,6 +640,20 @@ function loadEpisode(ep, seasonIdx) {
   } else if (type === 'seekplayer') {
     const id = epUrl.hash.slice(1);
     playM3u8(`${LOUDAPE_PROXY_URL}/?id=${encodeURIComponent(id)}`);
+  } else if (type === 'embedseek') {
+    const id = epUrl.hash.slice(1);
+    if (!id) { showNoVideo(ep, seasonIdx); return; }
+    placeholder.style.display = 'flex';
+    placeholder.innerHTML = `<div class="pl-hint">Chargement…</div>`;
+    fetch(`${CRIMSON_WORKER_URL}/embedseek?id=${encodeURIComponent(id)}`)
+      .then(r => r.json())
+      .then(({ url: m3u8url }) => {
+        if (gen !== loadGen) return;
+        if (!m3u8url) { showNoVideo(ep, seasonIdx); return; }
+        placeholder.style.display = 'none';
+        playM3u8(m3u8url);
+      })
+      .catch(() => { if (gen === loadGen) showNoVideo(ep, seasonIdx); });
   } else if (type === 'mp4') {
     const src = (ep.odysee || ep.url.includes('player.odycdn.com')) ? odycdnProxyUrl(ep.url) : ep.url;
     video.src = src; video.style.display = 'block';
