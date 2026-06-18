@@ -62,6 +62,15 @@
         </div>
       </div>
 
+      <div class="req-field">
+        <div class="cf-turnstile" id="req-turnstile"
+          data-sitekey="0x4AAAAAADnPdquihynew8y8"
+          data-theme="auto"
+          data-callback="onTurnstileSolved"
+          data-expired-callback="onTurnstileExpired">
+        </div>
+      </div>
+
       <button class="req-submit" id="req-submit" type="submit">ENVOYER <i class="fa-solid fa-angle-right"></i></button>
 
       <div class="req-success" id="req-success">
@@ -73,6 +82,7 @@
 
 </div>
 
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <script src="theme.js"></script>
 <script src="request.js"></script>
 </body>
