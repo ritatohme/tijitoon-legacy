@@ -378,7 +378,8 @@ h1.show-title {
 
 @media (max-width: 1080px) {
   .show-layout { grid-template-columns: 1fr; padding: 0 0 3rem; gap: 0; }
-  .player-section { padding: 0 6vw; }
+  /* player is full-width in single-column layout. was `.player-section { padding: 0 6vw; }`
+     to inset the player, but that left visible side gutters on phones/iPad, so removed. */
   .ep-browser { padding: 1.2rem 6vw 3rem; position: static; }
   .ep-list-wrap { max-width: none; }
 }

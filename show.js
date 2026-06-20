@@ -561,21 +561,25 @@ reportBtn.addEventListener('click', () => {
     });
 });
 
-const MEGA_MIN_WIDTH = 480;
+// Some embeds break below a minimum width (mega: player collapses; archive.org /embed:
+// controls overflow and clip on the right on narrow phones). Both ship at 640px wide, so
+// render the iframe at that width and transform:scale() it down to fit, instead of padding.
+const EMBED_SCALE_MIN_WIDTH = 640;
+let scaleMinWidth = 0;
 let megaScaleObserver = null;
 
 function applyMegaScale() {
   const w = playerWrap.offsetWidth;
-  if (w >= MEGA_MIN_WIDTH) {
+  if (!scaleMinWidth || w >= scaleMinWidth) {
     iframe.classList.remove('mega-scaled');
     iframe.style.width = '';
     iframe.style.height = '';
     iframe.style.transform = '';
   } else {
-    const scale = w / MEGA_MIN_WIDTH;
+    const scale = w / scaleMinWidth;
     const scaledH = (w * 9 / 16) / scale;
     iframe.classList.add('mega-scaled');
-    iframe.style.width  = MEGA_MIN_WIDTH + 'px';
+    iframe.style.width  = scaleMinWidth + 'px';
     iframe.style.height = scaledH + 'px';
     iframe.style.transform = `scale(${scale})`;
   }
@@ -583,6 +587,7 @@ function applyMegaScale() {
 
 function clearMegaScale() {
   if (megaScaleObserver) { megaScaleObserver.disconnect(); megaScaleObserver = null; }
+  scaleMinWidth = 0;
   iframe.classList.remove('mega-scaled');
   iframe.style.width = '';
   iframe.style.height = '';
@@ -744,7 +749,10 @@ function loadEpisode(ep, seasonIdx) {
     iframe.src = ep.url;
     iframe.style.display = 'block';
     fsBtn.style.display = (isIOS && host === 'drive.google.com') ? 'inline-block' : 'none'; // TODO TEMP
-    if (host === 'mega.nz') {
+    if (host === 'mega.nz' || (host === 'archive.org' && epUrl.pathname.startsWith('/embed'))) {
+      scaleMinWidth = EMBED_SCALE_MIN_WIDTH;
+    }
+    if (scaleMinWidth) {
       applyMegaScale();
       megaScaleObserver = new ResizeObserver(applyMegaScale);
       megaScaleObserver.observe(playerWrap);
