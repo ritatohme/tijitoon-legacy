@@ -183,6 +183,7 @@ body::before {
 [data-theme="dark"] .show-hero         { color: var(--dm-text); }
 [data-theme="dark"] .show-tag          { border-color: var(--dm-muted); color: var(--dm-text); }
 [data-theme="dark"] .ch-badge          { border-color: var(--dm-muted); color: var(--dm-text); }
+[data-theme="dark"] .ch-badge.tiji     { border-color: var(--dm-muted); color: var(--dm-text); }
 [data-theme="dark"] .ch-badge.cartoon-network { border-color: var(--dm-muted); color: var(--dm-text); }
 [data-theme="dark"] .topbar-title      { color: var(--dm-muted); }
 
