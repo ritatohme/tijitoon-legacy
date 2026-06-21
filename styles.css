@@ -109,7 +109,7 @@ body::before {
 }
 
 /* Hero / index */
-[data-theme="dark"] h1                { color: #e8e6e1; }
+[data-theme="dark"] h1                { color: var(--dm-text); }
 [data-theme="dark"] .eyebrow          { color: var(--ink); border-color: var(--ink); box-shadow: 4px 4px 0 var(--ink); }
 [data-theme="dark"] .ch-pill          { border-color: var(--dm-muted); }
 [data-theme="dark"] .teletoon-pill,
@@ -179,12 +179,8 @@ body::before {
 [data-theme="dark"] footer a           { color: var(--dm-muted) !important; border-bottom-color: var(--dm-muted) !important; }
 
 /* show.html - hero & badges */
-[data-theme="dark"] h1.show-title      { color: #e8e6e1; }
+[data-theme="dark"] h1.show-title      { color: var(--dm-text); }
 [data-theme="dark"] .show-hero         { color: var(--dm-text); }
-[data-theme="dark"] .show-tag          { border-color: var(--dm-muted); color: var(--dm-text); }
-[data-theme="dark"] .ch-badge          { border-color: var(--dm-muted); color: var(--dm-text); }
-[data-theme="dark"] .ch-badge.tiji     { border-color: var(--dm-muted); color: var(--dm-text); }
-[data-theme="dark"] .ch-badge.cartoon-network { border-color: var(--dm-muted); color: var(--dm-text); }
 [data-theme="dark"] .topbar-title      { color: var(--dm-muted); }
 
 /* show.html - season pills */

@@ -307,18 +307,6 @@ function populateHero() {
   document.getElementById('pl-bg-title').textContent = show.title;
   document.getElementById('topbar-title').textContent = show.title.toUpperCase();
 
-  const eyebrow = document.getElementById('show-eyebrow');
-  const parts = [];
-  if (show.tag) {
-    const tagCls = show.tag === '★' ? 'tag-star' : `tag-${esc(show.tag)}`;
-    parts.push(`<span class="show-tag ${tagCls}">${esc(TAG_LABELS[show.tag] ?? show.tag)}</span>`);
-  }
-  parts.push(`<span class="ch-badge ${esc(show.channel)}">${chLabel(show.channel)}</span>`);
-  if (show.years) parts.push(`<span class="show-years">${esc(show.years)}</span>`);
-  if (parts.length) {
-    eyebrow.innerHTML = parts.join('');
-    eyebrow.style.display = '';
-  }
 }
 
 function buildSeasonTabs() {

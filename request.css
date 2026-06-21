@@ -110,7 +110,7 @@
 .req-block p { font-size: clamp(.75rem, 1.5vw, .9rem); line-height: 1.7; }
 
 /* ── DARK MODE ── */
-[data-theme="dark"] .req-headline     { color: #e8e6e1; }
+[data-theme="dark"] .req-headline     { color: var(--dm-text); }
 [data-theme="dark"] .req-block p      { color: var(--dm-text); }
 [data-theme="dark"] .req-card         { border-color: var(--dm-muted); box-shadow: 10px 10px 0 var(--ink); }
 [data-theme="dark"] .req-card-header  { border-bottom-color: var(--lime); }
