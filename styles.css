@@ -39,6 +39,7 @@ html, body {
   font-family: 'Space Mono', monospace;
   min-height: 100vh;
   overflow-x: hidden;
+  user-select: none; -webkit-user-select: none;
 }
 
 body {
