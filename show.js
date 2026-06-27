@@ -189,6 +189,8 @@ const ODYCDN_PROXY_URL   = CRIMSON_WORKER_URL + '/';
 const LOUDAPE_PROXY_URL   = 'https://loud-ape-44.roughrecipe.deno.net';
 const OJAMAJO_WORKER_URL  = 'https://rapid-lab-6552.ritaclifford95.workers.dev';
 const EMBED_WORKER_URL    = 'https://flaky-sturgeon-55.roughrecipe.deno.net';
+// abysscdn-worker-v2: streams AbyssCDN as seekable MP4.
+const ABYSSCDN_WORKER_URL = 'https://noisy-hill-3a3b.ritaclifford99.workers.dev';
 
 function odycdnProxyUrl(mp4Url) {
   return ODYCDN_PROXY_URL + '?url=' + encodeURIComponent(mp4Url);
@@ -196,6 +198,7 @@ function odycdnProxyUrl(mp4Url) {
 
 function getEpType(ep) {
   if (ep.type) return ep.type;
+  if (ep.url?.includes('abysscdn.com') || ep.url?.includes('playhydrax.com') || ep.url?.includes('zplayer.io')) return 'abysscdn';
   if (ep.url?.includes('dessinanime.cc')) return 'dessinanime';
   if (ep.url?.includes('mhd.seekplayer.me')) return 'seekplayer';
   if (ep.url?.includes('embedseek.com')) return 'embedseek';
@@ -740,6 +743,12 @@ function loadEpisode(ep, seasonIdx) {
     placeholder.innerHTML = `
       <div class="pl-ep-label">S${seasonIdx + 1} - Épisode ${esc(ep.num)}</div>
       <a class="player-external-link" href="${esc(ep.url)}" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-play"></i> Regarder sur ${esc(epUrl.hostname)}</a>`;
+  } else if (type === 'abysscdn') {
+    // worker decrypts AbyssCDN and streams a seekable MP4 directly to <video>
+    const v = epUrl.searchParams.get('v') || epUrl.pathname.split('/').pop();
+    if (!v) { showNoVideo(ep, seasonIdx); return; }
+    video.src = `${ABYSSCDN_WORKER_URL}/abysscdn?v=${encodeURIComponent(v)}`;
+    video.style.display = 'block';
   } else if (type === 'dessinanime') {
     placeholder.style.display = 'flex';
     placeholder.innerHTML = `<div class="pl-hint">Chargement…</div>`;
