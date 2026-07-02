@@ -100,7 +100,7 @@ function buildContinueWatching(data) {
     card.appendChild(removeBtn);
     card.appendChild(inner);
     card.addEventListener('click', () => {
-      window.location.href = `show.html?series=${encodeURIComponent(seriesId)}&season=${season + 1}&ep=${ep + 1}`;
+      window.location.href = `show?series=${encodeURIComponent(seriesId)}&season=${season + 1}&ep=${ep + 1}`;
     });
     strip.appendChild(card);
   });
@@ -135,7 +135,7 @@ function buildCard(id, show) {
     </div>`;
   if (!show.disabled) {
     el.addEventListener('click', () => {
-      window.location.href = `show.html?series=${encodeURIComponent(id)}`;
+      window.location.href = `show?series=${encodeURIComponent(id)}`;
     });
   }
   return el;
@@ -145,7 +145,7 @@ function buildRow(id, show, idx) {
   const disabled = !!show.disabled;
   const el = document.createElement(disabled ? 'div' : 'a');
   el.className = 'trow' + (disabled ? ' disabled' : '');
-  if (!disabled) el.href = `show.html?series=${encodeURIComponent(id)}`;
+  if (!disabled) el.href = `show?series=${encodeURIComponent(id)}`;
   el.dataset.channel = show.channel;
   el.dataset.tag = show.tag || '';
   el.dataset.search = normalize(`${show.title} ${show.alt_title || ''}`);

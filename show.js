@@ -645,7 +645,32 @@ function playM3u8(src) {
   }
 }
 
+function playMp4(src) {
+  video.src = src;
+  video.style.display = 'block';
+}
+
 let loadGen = 0;
+
+// Hosts whose playable source must be resolved through a worker/API call first:
+// show "Chargement…", fetch, then play whatever pickSource pulls out of the JSON
+// payload ({ mp4 } or { m3u8 }; empty/null = dead link). The gen check drops
+// responses that land after another episode was selected.
+function resolveAndPlay(gen, ep, seasonIdx, fetchUrl, pickSource, fetchOpts) {
+  placeholder.style.display = 'flex';
+  placeholder.innerHTML = `<div class="pl-hint">Chargement…</div>`;
+  fetch(fetchUrl, fetchOpts)
+    .then(r => r.json())
+    .then(json => {
+      if (gen !== loadGen) return;
+      const src = pickSource(json) || {};
+      if (!src.mp4 && !src.m3u8) { showNoVideo(ep, seasonIdx); return; }
+      placeholder.style.display = 'none';
+      if (src.mp4) playMp4(src.mp4);
+      else playM3u8(src.m3u8);
+    })
+    .catch(() => { if (gen === loadGen) showNoVideo(ep, seasonIdx); });
+}
 
 function loadEpisode(ep, seasonIdx) {
   const gen = ++loadGen;
@@ -672,69 +697,32 @@ function loadEpisode(ep, seasonIdx) {
   } else if (type === 'sendvid') {
     const id = ep.url.match(/embed\/([a-z0-9]+)/i)?.[1];
     if (!id) { showNoVideo(ep, seasonIdx); return; }
-    video.src = `${EMBED_WORKER_URL}/sendvid?id=${encodeURIComponent(id)}`;
-    video.style.display = 'block';
+    playMp4(`${EMBED_WORKER_URL}/sendvid?id=${encodeURIComponent(id)}`);
   } else if (type === 'uqload') {
     const id = ep.url.match(/embed-([a-z0-9]+)\.html/)?.[1];
     if (!id) { showNoVideo(ep, seasonIdx); return; }
-    placeholder.style.display = 'flex';
-    placeholder.innerHTML = `<div class="pl-hint">Chargement…</div>`;
-    fetch(`${CRIMSON_WORKER_URL}/uqload?id=${id}`)
-      .then(r => r.json())
-      .then(({ url: m3u8url }) => {
-        if (gen !== loadGen) return;
-        if (!m3u8url) { showNoVideo(ep, seasonIdx); return; }
-        placeholder.style.display = 'none';
-        playM3u8(m3u8url);
-      })
-      .catch(() => { if (gen === loadGen) showNoVideo(ep, seasonIdx); });
+    resolveAndPlay(gen, ep, seasonIdx, `${CRIMSON_WORKER_URL}/uqload?id=${id}`,
+      ({ url }) => ({ m3u8: url }));
   } else if (type === 'vidzy') {
     const id = ep.url.match(/embed-([a-z0-9]+)\.html/)?.[1];
     if (!id) { showNoVideo(ep, seasonIdx); return; }
-    placeholder.style.display = 'flex';
-    placeholder.innerHTML = `<div class="pl-hint">Chargement…</div>`;
-    fetch(`${CRIMSON_WORKER_URL}/vidzy?id=${id}`)
-      .then(r => r.json())
-      .then(({ url: m3u8url }) => {
-        if (gen !== loadGen) return;
-        if (!m3u8url) { showNoVideo(ep, seasonIdx); return; }
-        placeholder.style.display = 'none';
-        playM3u8(m3u8url);
-      })
-      .catch(() => { if (gen === loadGen) showNoVideo(ep, seasonIdx); });
+    resolveAndPlay(gen, ep, seasonIdx, `${CRIMSON_WORKER_URL}/vidzy?id=${id}`,
+      ({ url }) => ({ m3u8: url }));
   } else if (type === 'pcloud') {
     // direct links expire after a few hours - resolve a fresh one per play
     const code = epUrl.searchParams.get('code');
     if (!code) { showNoVideo(ep, seasonIdx); return; }
     const api = epUrl.hostname.startsWith('e.') ? 'eapi' : 'api'; // e.pcloud.link = EU datacenter
-    placeholder.style.display = 'flex';
-    placeholder.innerHTML = `<div class="pl-hint">Chargement…</div>`;
     // pcloud rejects requests with a foreign Referer ("Invalid link referer", result 7010)
-    fetch(`https://${api}.pcloud.com/getpublinkdownload?code=${encodeURIComponent(code)}`, { referrerPolicy: 'no-referrer' })
-      .then(r => r.json())
-      .then(j => {
-        if (gen !== loadGen) return;
-        if (j.result !== 0 || !j.hosts?.length) { showNoVideo(ep, seasonIdx); return; }
-        placeholder.style.display = 'none';
-        video.src = 'https://' + j.hosts[0] + j.path;
-        video.style.display = 'block';
-      })
-      .catch(() => { if (gen === loadGen) showNoVideo(ep, seasonIdx); });
+    resolveAndPlay(gen, ep, seasonIdx,
+      `https://${api}.pcloud.com/getpublinkdownload?code=${encodeURIComponent(code)}`,
+      j => j.result === 0 && j.hosts?.length ? { mp4: 'https://' + j.hosts[0] + j.path } : null,
+      { referrerPolicy: 'no-referrer' });
   } else if (type === 'sibnet') {
     const id = epUrl.searchParams.get('videoid');
     if (!id) { showNoVideo(ep, seasonIdx); return; }
-    placeholder.style.display = 'flex';
-    placeholder.innerHTML = `<div class="pl-hint">Chargement…</div>`;
-    fetch(`${EMBED_WORKER_URL}/sibnet?id=${encodeURIComponent(id)}`)
-      .then(r => r.json())
-      .then(({ type: srcType, url: src }) => {
-        if (gen !== loadGen) return;
-        if (!src) { showNoVideo(ep, seasonIdx); return; }
-        placeholder.style.display = 'none';
-        if (srcType === 'mp4') { video.src = src; video.style.display = 'block'; }
-        else playM3u8(src);
-      })
-      .catch(() => { if (gen === loadGen) showNoVideo(ep, seasonIdx); });
+    resolveAndPlay(gen, ep, seasonIdx, `${EMBED_WORKER_URL}/sibnet?id=${encodeURIComponent(id)}`,
+      ({ type: srcType, url }) => srcType === 'mp4' ? { mp4: url } : { m3u8: url });
   } else if (type === 'ojamajo') {
     const uuid = epUrl.pathname.split('/').pop();
     playM3u8(`${OJAMAJO_WORKER_URL}/ojamajo/playlist?uuid=${encodeURIComponent(uuid)}`);
@@ -747,41 +735,21 @@ function loadEpisode(ep, seasonIdx) {
     // worker decrypts AbyssCDN and streams a seekable MP4 directly to <video>
     const v = epUrl.searchParams.get('v') || epUrl.pathname.split('/').pop();
     if (!v) { showNoVideo(ep, seasonIdx); return; }
-    video.src = `${ABYSSCDN_WORKER_URL}/abysscdn?v=${encodeURIComponent(v)}`;
-    video.style.display = 'block';
+    playMp4(`${ABYSSCDN_WORKER_URL}/abysscdn?v=${encodeURIComponent(v)}`);
   } else if (type === 'dessinanime') {
-    placeholder.style.display = 'flex';
-    placeholder.innerHTML = `<div class="pl-hint">Chargement…</div>`;
-    fetch(`${DESSINANIME_WORKER_URL}/dessinanime?url=${encodeURIComponent(ep.url)}`)
-      .then(r => r.json())
-      .then(({ source }) => {
-        if (gen !== loadGen) return;
-        if (!source) { showNoVideo(ep, seasonIdx); return; }
-        placeholder.style.display = 'none';
-        video.src = source;
-        video.style.display = 'block';
-      })
-      .catch(() => { if (gen === loadGen) showNoVideo(ep, seasonIdx); });
+    resolveAndPlay(gen, ep, seasonIdx,
+      `${DESSINANIME_WORKER_URL}/dessinanime?url=${encodeURIComponent(ep.url)}`,
+      ({ source }) => ({ mp4: source }));
   } else if (type === 'seekplayer') {
     const id = epUrl.hash.slice(1);
     playM3u8(`${LOUDAPE_PROXY_URL}/?id=${encodeURIComponent(id)}`);
   } else if (type === 'embedseek') {
     const id = epUrl.hash.slice(1);
     if (!id) { showNoVideo(ep, seasonIdx); return; }
-    placeholder.style.display = 'flex';
-    placeholder.innerHTML = `<div class="pl-hint">Chargement…</div>`;
-    fetch(`${CRIMSON_WORKER_URL}/embedseek?id=${encodeURIComponent(id)}`)
-      .then(r => r.json())
-      .then(({ url: m3u8url }) => {
-        if (gen !== loadGen) return;
-        if (!m3u8url) { showNoVideo(ep, seasonIdx); return; }
-        placeholder.style.display = 'none';
-        playM3u8(m3u8url);
-      })
-      .catch(() => { if (gen === loadGen) showNoVideo(ep, seasonIdx); });
+    resolveAndPlay(gen, ep, seasonIdx, `${CRIMSON_WORKER_URL}/embedseek?id=${encodeURIComponent(id)}`,
+      ({ url }) => ({ m3u8: url }));
   } else if (type === 'mp4') {
-    const src = (ep.odysee || ep.url.includes('player.odycdn.com')) ? odycdnProxyUrl(ep.url) : ep.url;
-    video.src = src; video.style.display = 'block';
+    playMp4((ep.odysee || ep.url.includes('player.odycdn.com')) ? odycdnProxyUrl(ep.url) : ep.url);
   } else if (type === 'm3u8') {
     const src = ep.url.includes('senpai-stream.club')
       ? `${LOUDAPE_PROXY_URL}/?url=${encodeURIComponent(ep.url)}`

@@ -3,7 +3,7 @@
   "short_name": "Tijitoon",
   "description": "Le catalogue des dessins animés diffusés sur Télétoon, Tiji et Cartoon Network en France.",
   "lang": "fr",
-  "start_url": "/tijitoon/index.html",
+  "start_url": "/tijitoon/",
   "scope": "/tijitoon/",
   "display": "standalone",
   "orientation": "any",
