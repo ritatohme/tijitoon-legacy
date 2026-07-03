@@ -15371,6 +15371,7 @@
     "title": "Les Trois Petites Sœurs",
     "alt_title": "The Triplets",
     "channel": "tiji",
+    "disabled": true,
     "years": null,
     "tag": "FR",
     "seasons": [
