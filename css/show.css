@@ -2,11 +2,6 @@ body { background-image: none; overflow-x: hidden; }
 
 /* ── TOPBAR ── */
 .topbar { position: sticky; top: 0; z-index: 100; }
-.topbar-title {
-  opacity: .4; font-size: clamp(.75rem,1.5vw,1rem);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  min-width: 0;
-}
 
 /* ── HERO ── */
 .show-hero {

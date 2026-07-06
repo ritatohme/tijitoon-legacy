@@ -2,15 +2,13 @@
 let allEntries = [];
 let activeFilter = 'all';
 let searchQ = '';
-let viewMode = localStorage.getItem('tijitoon_view') || 'cards';
+let viewMode = localStorage.getItem(VIEW_KEY) || 'cards';
 
 // ── CONTINUE WATCHING ──────────────────────────────────
 // Reads per-series keys: tijitoon:progress:<id> → { season, ep }
 function buildContinueWatching(data) {
   const entries = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (!key.startsWith(PROGRESS_PREFIX)) continue;
+  for (const key of progressKeys()) {
     const seriesId = key.slice(PROGRESS_PREFIX.length);
     const show = data[seriesId];
     if (!show || show.disabled) continue;
@@ -67,7 +65,7 @@ function buildContinueWatching(data) {
   expandBtn.onclick = () => { expanded = !expanded; updateExpand(); };
 
   entries.forEach(({ seriesId, show, season, ep, s, epObj }) => {
-    const label = `S${s.id ?? String(season + 1).padStart(2,'0')}E${String(epObj.num).padStart(2,'0')}`;
+    const label = epLabel(s, season, epObj.num);
 
     const card = document.createElement('div');
     card.className = 'cw-card';
@@ -102,12 +100,7 @@ function buildContinueWatching(data) {
 
 document.getElementById('cw-clear').addEventListener('click', () => {
   if (!confirm('Effacer tout l\'historique de visionnage ?')) return;
-  const keys = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key.startsWith(PROGRESS_PREFIX)) keys.push(key);
-  }
-  keys.forEach(k => localStorage.removeItem(k));
+  progressKeys().forEach(k => localStorage.removeItem(k));
   document.getElementById('continue-watching').style.display = 'none';
   document.getElementById('cw-strip').innerHTML = '';
 });
@@ -170,8 +163,8 @@ function renderAll(data) {
 
 // ── FILTER ─────────────────────────────────────────────
 function matchesFilter(el) {
-  const mf = activeFilter === 'all' || el.dataset.channel === activeFilter || el.dataset.tag === activeFilter;
-  return mf && (!searchQ || el.dataset.search.includes(searchQ));
+  const matchesChip = activeFilter === 'all' || el.dataset.channel === activeFilter || el.dataset.tag === activeFilter;
+  return matchesChip && (!searchQ || el.dataset.search.includes(searchQ));
 }
 
 function applyFilter() {
@@ -202,7 +195,7 @@ function applyView() {
 
 function setView(mode) {
   viewMode = mode;
-  localStorage.setItem('tijitoon_view', mode);
+  localStorage.setItem(VIEW_KEY, mode);
   applyView();
 }
 document.getElementById('btn-cards').addEventListener('click', () => setView('cards'));
@@ -283,13 +276,16 @@ window.addEventListener('pageshow', e => {
 });
 
 // ── FETCH ──────────────────────────────────────────────
-fetch('data.json')
-  .then(r => r.ok ? r.json() : Promise.reject())
-  .then(data => {
-    renderAll(data);
-    buildContinueWatching(data);
-  })
-  .catch(() => {
+// Network/HTTP failures show the error message; bugs in the render path are not
+// swallowed here — they surface in the console as uncaught errors.
+fetchJson('data.json')
+  .catch(err => {
+    console.error(err);
     document.getElementById('card-grid').innerHTML =
       '<div class="grid-msg">Erreur de chargement.</div>';
+  })
+  .then(data => {
+    if (!data) return;
+    renderAll(data);
+    buildContinueWatching(data);
   });

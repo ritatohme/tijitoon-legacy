@@ -51,7 +51,6 @@ h1 {
   background: var(--hot); color: var(--paper);
   padding: .8rem 1.2rem; border: 3px solid var(--ink); box-shadow: 6px 6px 0 var(--ink);
 }
-.sticker.one { top: 4rem; right: 5vw; transform: rotate(8deg); font-size: clamp(.7rem,1.2vw,1rem); }
 .sticker.two {
   position: absolute; bottom: -12px; right: -10px; margin: 0;
   transform: rotate(-3deg); z-index: 10;
@@ -208,7 +207,6 @@ h1 {
 }
 .fb-chip:hover { background: rgba(19,17,26,.06); color: var(--ink); }
 .fb-chip.active { color: var(--ink); }
-.fb-chip[data-f="all"].active      { background: var(--lime); }
 .fb-chip[data-f="teletoon"].active { background: var(--hot); color: var(--paper); }
 .fb-chip[data-f="tiji"].active     { background: var(--sky); }
 .fb-chip[data-f="cartoon-network"].active { background: var(--lime); }
@@ -439,7 +437,6 @@ footer .blink { animation: blink 1s steps(2) infinite; }
 
 @media (max-width: 600px) {
   header { padding: 2.5rem 5vw 2rem; }
-  .sticker.one { display: none; }
   .sticker.two { display: none; }
   .card-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: .55rem; }
   .card { padding: .7rem .75rem; }

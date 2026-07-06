@@ -1,5 +1,5 @@
 function syncThemeLabel() {
-  var lbl = document.getElementById('theme-label');
+  const lbl = document.getElementById('theme-label');
   if (lbl) lbl.textContent = document.documentElement.dataset.theme === 'dark' ? 'LIGHT' : 'DARK';
 }
 
@@ -8,10 +8,10 @@ function syncThemeLabel() {
 // loaded, unlike theme-init.js. Replaces the meta node rather than mutating its
 // content attribute, which forces Chrome for Android to repaint the bar live.
 function syncThemeColor() {
-  var color = getComputedStyle(document.documentElement).getPropertyValue('--paper').trim();
-  var old = document.querySelector('meta[name="theme-color"]');
+  const color = getComputedStyle(document.documentElement).getPropertyValue('--paper').trim();
+  const old = document.querySelector('meta[name="theme-color"]');
   if (old) old.parentNode.removeChild(old);
-  var meta = document.createElement('meta');
+  const meta = document.createElement('meta');
   meta.setAttribute('name', 'theme-color');
   meta.setAttribute('content', color);
   document.head.appendChild(meta);
@@ -19,10 +19,10 @@ function syncThemeColor() {
 
 syncThemeLabel();
 
-document.getElementById('theme-toggle').addEventListener('click', function() {
-  var html = document.documentElement;
+document.getElementById('theme-toggle').addEventListener('click', () => {
+  const html = document.documentElement;
   html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
-  localStorage.setItem('tijitoon_theme', html.dataset.theme);
+  localStorage.setItem('tijitoon_theme', html.dataset.theme); // key duplicated in theme-init.js on purpose
   syncThemeLabel();
   syncThemeColor();
 });
