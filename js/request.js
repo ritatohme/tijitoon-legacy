@@ -35,7 +35,7 @@ document.getElementById('req-form').addEventListener('submit', async function (e
   formData.set('cf-turnstile-response', turnstileToken);
 
   try {
-    const res = await fetch('https://formspree.io/f/mjgddkqp', {
+    const res = await fetch(this.action, {
       method: 'POST',
       body: formData,
       headers: { 'Accept': 'application/json' },

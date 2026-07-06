@@ -1,6 +1,6 @@
 const params = new URLSearchParams(location.search);
 const showId = params.get('series') || params.get('id');
-if (!showId || !/^[\w-]+$/.test(showId)) window.location.replace('404.html');
+if (!showId || !/^[\w-]+$/.test(showId)) window.location.replace('404');
 
 const iframe         = document.getElementById('player-iframe');
 const placeholder    = document.getElementById('player-placeholder');
@@ -158,22 +158,32 @@ function odycdnProxyUrl(mp4Url) {
   return ODYCDN_PROXY_URL + '?url=' + encodeURIComponent(mp4Url);
 }
 
+// URL fragment → episode type. First match wins; adding a host is one line here.
+const URL_TYPE_MATCHERS = [
+  ['abysscdn.com',                  'abysscdn'],
+  ['playhydrax.com',                'abysscdn'],
+  ['zplayer.io',                    'abysscdn'],
+  ['dessinanime.cc',                'dessinanime'],
+  ['mhd.seekplayer.me',             'seekplayer'],
+  ['embedseek.com',                 'embedseek'],
+  ['player.ojamajo.moe/videos/watch', 'ojamajo'],
+  ['uqload.is/embed-',              'uqload'],
+  ['vidzy.live/embed-',             'vidzy'],
+  ['vidmoly.biz/embed-',            'vidmoly'],
+  ['sendvid.com/embed/',            'sendvid'],
+  ['video.sibnet.ru/shell.php',     'sibnet'],
+  ['pcloud.link/publink',           'pcloud'],
+  ['pcloud.com/publink',            'pcloud'],
+];
+
 function getEpType(ep) {
   if (ep.type) return ep.type;
-  if (ep.url?.includes('abysscdn.com') || ep.url?.includes('playhydrax.com') || ep.url?.includes('zplayer.io')) return 'abysscdn';
-  if (ep.url?.includes('dessinanime.cc')) return 'dessinanime';
-  if (ep.url?.includes('mhd.seekplayer.me')) return 'seekplayer';
-  if (ep.url?.includes('embedseek.com')) return 'embedseek';
-  if (ep.url?.includes('player.ojamajo.moe/videos/watch')) return 'ojamajo';
-  if (ep.url?.includes('uqload.is/embed-')) return 'uqload';
-  if (ep.url?.includes('vidzy.live/embed-')) return 'vidzy';
-  if (ep.url?.includes('vidmoly.biz/embed-')) return 'vidmoly';
-  if (ep.url?.includes('sendvid.com/embed/')) return 'sendvid';
-  if (ep.url?.includes('video.sibnet.ru/shell.php')) return 'sibnet';
-  if (ep.url?.includes('pcloud.link/publink') || ep.url?.includes('pcloud.com/publink')) return 'pcloud';
+  const url = ep.url || '';
+  const matched = URL_TYPE_MATCHERS.find(([fragment]) => url.includes(fragment));
+  if (matched) return matched[1];
   // if (ep.url?.endsWith('.mp4')) return 'mp4';
-  if (ep.url?.endsWith('.mp4') && !ep.url.includes('archive.org/embed')) return 'mp4';
-  if (ep.url?.endsWith('.m3u8')) return 'm3u8';
+  if (url.endsWith('.mp4') && !url.includes('archive.org/embed')) return 'mp4';
+  if (url.endsWith('.m3u8')) return 'm3u8';
   return 'embed';
 }
 
@@ -224,7 +234,7 @@ Promise.all([
 ])
   .then(([data, notes]) => {
     show = data[showId];
-    if (!show) return window.location.replace('404.html');
+    if (!show) return window.location.replace('404');
 
     flatEps = show.seasons.flatMap((s, si) =>
       s.episodes.map((ep, ei) => ({ seasonIdx: si, epIdx: ei, ep }))
@@ -274,7 +284,7 @@ Promise.all([
       placeholder.style.display = 'flex';
     }
   })
-  .catch(() => window.location.replace('404.html'));
+  .catch(() => window.location.replace('404'));
 
 window.addEventListener('popstate', e => {
   if (!show || !e.state || e.state.series !== showId) return;
@@ -610,41 +620,37 @@ function resolveAndPlay(gen, ep, seasonIdx, fetchUrl, pickSource, fetchOpts) {
     .catch(() => { if (gen === loadGen) showNoVideo(ep, seasonIdx); });
 }
 
-function loadEpisode(ep, seasonIdx) {
-  const gen = ++loadGen;
-  destroyArt(); // also hides + clears the legacy <video>
-  iframe.style.display = 'none'; iframe.src = 'about:blank';
-  placeholder.style.display = 'none';
-  placeholder.className = 'player-placeholder';
-  fsBtn.style.display = 'none';
-  clearMegaScale();
-
-  if (!ep.url) { showNoVideo(ep, seasonIdx); return; }
-  let epUrl;
-  try { epUrl = new URL(ep.url); } catch (_) { showNoVideo(ep, seasonIdx); return; }
-  if (!/^https?:$/.test(epUrl.protocol)) { showNoVideo(ep, seasonIdx); return; }
-
-  const type = getEpType(ep);
-
-  if (type === 'vidmoly') {
+// One loader per episode type (see getEpType). Each receives the episode, its
+// parsed URL, the season index (for the "no video" placeholder) and the load
+// generation (passed through to resolveAndPlay's stale-response guard).
+const EPISODE_LOADERS = {
+  vidmoly({ ep, seasonIdx }) {
     const id = ep.url.match(/embed-([a-z0-9]+)\.html/i)?.[1];
     if (!id) { showNoVideo(ep, seasonIdx); return; }
     playM3u8(`${EMBED_WORKER_URL}/vidmoly?id=${encodeURIComponent(id)}`);
-  } else if (type === 'sendvid') {
+  },
+
+  sendvid({ ep, seasonIdx }) {
     const id = ep.url.match(/embed\/([a-z0-9]+)/i)?.[1];
     if (!id) { showNoVideo(ep, seasonIdx); return; }
     playMp4(`${EMBED_WORKER_URL}/sendvid?id=${encodeURIComponent(id)}`);
-  } else if (type === 'uqload') {
+  },
+
+  uqload({ ep, seasonIdx, gen }) {
     const id = ep.url.match(/embed-([a-z0-9]+)\.html/)?.[1];
     if (!id) { showNoVideo(ep, seasonIdx); return; }
     resolveAndPlay(gen, ep, seasonIdx, `${CRIMSON_WORKER_URL}/uqload?id=${id}`,
       ({ url }) => ({ m3u8: url }));
-  } else if (type === 'vidzy') {
+  },
+
+  vidzy({ ep, seasonIdx, gen }) {
     const id = ep.url.match(/embed-([a-z0-9]+)\.html/)?.[1];
     if (!id) { showNoVideo(ep, seasonIdx); return; }
     resolveAndPlay(gen, ep, seasonIdx, `${CRIMSON_WORKER_URL}/vidzy?id=${id}`,
       ({ url }) => ({ m3u8: url }));
-  } else if (type === 'pcloud') {
+  },
+
+  pcloud({ ep, epUrl, seasonIdx, gen }) {
     // direct links expire after a few hours - resolve a fresh one per play
     const code = epUrl.searchParams.get('code');
     if (!code) { showNoVideo(ep, seasonIdx); return; }
@@ -654,45 +660,66 @@ function loadEpisode(ep, seasonIdx) {
       `https://${api}.pcloud.com/getpublinkdownload?code=${encodeURIComponent(code)}`,
       j => j.result === 0 && j.hosts?.length ? { mp4: 'https://' + j.hosts[0] + j.path } : null,
       { referrerPolicy: 'no-referrer' });
-  } else if (type === 'sibnet') {
+  },
+
+  sibnet({ ep, epUrl, seasonIdx, gen }) {
     const id = epUrl.searchParams.get('videoid');
     if (!id) { showNoVideo(ep, seasonIdx); return; }
     resolveAndPlay(gen, ep, seasonIdx, `${EMBED_WORKER_URL}/sibnet?id=${encodeURIComponent(id)}`,
       ({ type: srcType, url }) => srcType === 'mp4' ? { mp4: url } : { m3u8: url });
-  } else if (type === 'ojamajo') {
+  },
+
+  ojamajo({ epUrl }) {
     const uuid = epUrl.pathname.split('/').pop();
     playM3u8(`${OJAMAJO_WORKER_URL}/ojamajo/playlist?uuid=${encodeURIComponent(uuid)}`);
-  } else if (type === 'redirect') {
+  },
+
+  redirect({ ep, epUrl, seasonIdx }) {
     placeholder.style.display = 'flex';
     placeholder.innerHTML = `
       <div class="pl-ep-label">S${seasonIdx + 1} - Épisode ${esc(ep.num)}</div>
       <a class="player-external-link" href="${esc(ep.url)}" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-play"></i> Regarder sur ${esc(epUrl.hostname)}</a>`;
-  } else if (type === 'abysscdn') {
+  },
+
+  abysscdn({ ep, epUrl, seasonIdx }) {
     // worker decrypts AbyssCDN and streams a seekable MP4 directly to <video>
     const v = epUrl.searchParams.get('v') || epUrl.pathname.split('/').pop();
     if (!v) { showNoVideo(ep, seasonIdx); return; }
     playMp4(`${ABYSSCDN_WORKER_URL}/abysscdn?v=${encodeURIComponent(v)}`);
-  } else if (type === 'dessinanime') {
+  },
+
+  dessinanime({ ep, seasonIdx, gen }) {
     // floralstar returns sources[] (all qualities, highest first) → quality gear.
     resolveAndPlay(gen, ep, seasonIdx,
       `${DESSINANIME_WORKER_URL}/dessinanime?url=${encodeURIComponent(ep.url)}`,
       ({ source, sources }) => ({ sources, mp4: source }));
-  } else if (type === 'seekplayer') {
+  },
+
+  seekplayer({ epUrl }) {
     const id = epUrl.hash.slice(1);
     playM3u8(`${LOUDAPE_PROXY_URL}/?id=${encodeURIComponent(id)}`);
-  } else if (type === 'embedseek') {
+  },
+
+  embedseek({ ep, epUrl, seasonIdx, gen }) {
     const id = epUrl.hash.slice(1);
     if (!id) { showNoVideo(ep, seasonIdx); return; }
     resolveAndPlay(gen, ep, seasonIdx, `${CRIMSON_WORKER_URL}/embedseek?id=${encodeURIComponent(id)}`,
       ({ url }) => ({ m3u8: url }));
-  } else if (type === 'mp4') {
+  },
+
+  mp4({ ep }) {
     playMp4((ep.odysee || ep.url.includes('player.odycdn.com')) ? odycdnProxyUrl(ep.url) : ep.url);
-  } else if (type === 'm3u8') {
-    const src = ep.url.includes('senpai-stream.club')
+  },
+
+  m3u8({ ep }) {
+    const needsProxy = ep.url.includes('senpai-stream.club') || ep.url.includes('nakastream.tv');
+    const src = needsProxy
       ? `${LOUDAPE_PROXY_URL}/?url=${encodeURIComponent(ep.url)}`
       : ep.url;
     playM3u8(src);
-  } else {
+  },
+
+  embed({ ep, epUrl }) {
     const host = epUrl.hostname;
     const sandboxVal = SANDBOX_PERMISSIONS[host] ?? DEFAULT_SANDBOX;
     if (sandboxVal) iframe.setAttribute('sandbox', sandboxVal);
@@ -708,7 +735,25 @@ function loadEpisode(ep, seasonIdx) {
       megaScaleObserver = new ResizeObserver(applyMegaScale);
       megaScaleObserver.observe(playerWrap);
     }
-  }
+  },
+};
+
+function loadEpisode(ep, seasonIdx) {
+  const gen = ++loadGen;
+  destroyArt(); // also hides + clears the legacy <video>
+  iframe.style.display = 'none'; iframe.src = 'about:blank';
+  placeholder.style.display = 'none';
+  placeholder.className = 'player-placeholder';
+  fsBtn.style.display = 'none';
+  clearMegaScale();
+
+  if (!ep.url) { showNoVideo(ep, seasonIdx); return; }
+  let epUrl;
+  try { epUrl = new URL(ep.url); } catch (_) { showNoVideo(ep, seasonIdx); return; }
+  if (!/^https?:$/.test(epUrl.protocol)) { showNoVideo(ep, seasonIdx); return; }
+
+  const loader = EPISODE_LOADERS[getEpType(ep)] || EPISODE_LOADERS.embed;
+  loader({ ep, epUrl, seasonIdx, gen });
 }
 
 function showNoVideo(ep, seasonIdx) {

@@ -7,7 +7,8 @@ function progressKey(seriesId) {
 }
 
 function normalize(str) {
-  return str.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  // strip combining diacritics left by NFD decomposition (é → e + U+0301)
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 }
 
 function esc(str) {

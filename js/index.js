@@ -71,25 +71,20 @@ function buildContinueWatching(data) {
 
     const card = document.createElement('div');
     card.className = 'cw-card';
-    card.style.position = 'relative';
 
     const removeBtn = document.createElement('button');
     removeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
     removeBtn.className = 'cw-remove-btn';
-    removeBtn.style.cssText = `position:absolute; top:-7px; right:-7px; opacity:0; transition:opacity .15s;`;
-    removeBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
+    removeBtn.addEventListener('click', () => {
       localStorage.removeItem(progressKey(seriesId));
       card.remove();
       if (!strip.querySelectorAll('.cw-card').length) wrap.style.display = 'none';
       else { firstRowLimit = null; requestAnimationFrame(updateExpand); }
     });
-    card.addEventListener('mouseenter', () => removeBtn.style.opacity = '1');
-    card.addEventListener('mouseleave', () => removeBtn.style.opacity = '0');
-    if (window.matchMedia('(hover: none)').matches) removeBtn.style.opacity = '1';
 
-    const inner = document.createElement('div');
-    inner.style.cssText = 'text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:.25rem;';
+    const inner = document.createElement('a');
+    inner.className = 'cw-card-link';
+    inner.href = `show?series=${encodeURIComponent(seriesId)}&season=${season + 1}&ep=${ep + 1}`;
     inner.innerHTML = `
       <div class="cw-card-title">${esc(show.title)}</div>
       <div class="cw-meta">
@@ -99,9 +94,6 @@ function buildContinueWatching(data) {
 
     card.appendChild(removeBtn);
     card.appendChild(inner);
-    card.addEventListener('click', () => {
-      window.location.href = `show?series=${encodeURIComponent(seriesId)}&season=${season + 1}&ep=${ep + 1}`;
-    });
     strip.appendChild(card);
   });
 
@@ -122,8 +114,10 @@ document.getElementById('cw-clear').addEventListener('click', () => {
 
 // ── BUILD ITEMS ────────────────────────────────────────
 function buildCard(id, show) {
-  const el = document.createElement('div');
-  el.className = 'card' + (show.disabled ? ' disabled' : '');
+  const disabled = !!show.disabled;
+  const el = document.createElement(disabled ? 'div' : 'a');
+  el.className = 'card' + (disabled ? ' disabled' : '');
+  if (!disabled) el.href = `show?series=${encodeURIComponent(id)}`;
   el.dataset.channel = show.channel;
   el.dataset.tag = show.tag || '';
   el.dataset.search = normalize(`${show.title} ${show.alt_title || ''}`);
@@ -133,11 +127,6 @@ function buildCard(id, show) {
       ${show.tag ? `<span class="card-tag ${tagCls(show.tag)}">${esc(show.tag)}</span>` : ''}
       <span class="card-ch ${esc(show.channel)}">${chLabel(show.channel)}</span>
     </div>`;
-  if (!show.disabled) {
-    el.addEventListener('click', () => {
-      window.location.href = `show?series=${encodeURIComponent(id)}`;
-    });
-  }
   return el;
 }
 
@@ -180,22 +169,22 @@ function renderAll(data) {
 }
 
 // ── FILTER ─────────────────────────────────────────────
+function matchesFilter(el) {
+  const mf = activeFilter === 'all' || el.dataset.channel === activeFilter || el.dataset.tag === activeFilter;
+  return mf && (!searchQ || el.dataset.search.includes(searchQ));
+}
+
 function applyFilter() {
   let visible = 0;
-  const q = searchQ;
 
   document.querySelectorAll('#card-grid .card').forEach(el => {
-    const mf = activeFilter === 'all' || el.dataset.channel === activeFilter || el.dataset.tag === activeFilter;
-    const mq = !q || el.dataset.search.includes(q);
-    const show = mf && mq;
+    const show = matchesFilter(el);
     el.classList.toggle('hidden', !show);
     if (show) visible++;
   });
 
   document.querySelectorAll('.trow').forEach(el => {
-    const mf = activeFilter === 'all' || el.dataset.channel === activeFilter || el.dataset.tag === activeFilter;
-    const mq = !q || el.dataset.search.includes(q);
-    el.classList.toggle('hidden', !(mf && mq));
+    el.classList.toggle('hidden', !matchesFilter(el));
   });
 
   document.getElementById('fb-count').textContent = `${visible}`;
@@ -284,6 +273,7 @@ searchClear.addEventListener('click', () => {
 
 // ── BACK TO TOP ────────────────────────────────────────
 const backTop = document.getElementById('back-top');
+backTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 window.addEventListener('scroll', () =>
   backTop.classList.toggle('visible', window.scrollY > 500)
 , { passive: true });
@@ -301,5 +291,5 @@ fetch('data.json')
   })
   .catch(() => {
     document.getElementById('card-grid').innerHTML =
-      '<div style="grid-column:1/-1;font-family:VT323,monospace;font-size:1.1rem;opacity:.4;">Erreur de chargement.</div>';
+      '<div class="grid-msg">Erreur de chargement.</div>';
   });

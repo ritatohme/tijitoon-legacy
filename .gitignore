@@ -1,0 +1,14 @@
+# IDE
+.idea/
+.vscode/
+
+# Local backups & generated caches
+bak/
+__pycache__/
+
+# Worker / backend source (kept locally, deployed separately)
+specs/
+workers/
+
+# Local maintenance scripts (link checkers, poster fetcher, seed page)
+tools/

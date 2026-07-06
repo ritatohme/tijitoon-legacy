@@ -61,6 +61,7 @@ h1 {
 }
 
 /* ── SEARCH (in hero) ── */
+.search-zone { position: relative; max-width: 580px; padding-bottom: 1.2rem; }
 .search-wrap {
   display: flex; align-items: center;
   border: 3px solid var(--ink); box-shadow: 6px 6px 0 var(--ink);
@@ -125,12 +126,19 @@ h1 {
   .cw-card.cw-hidden { display: none; }
 }
 .cw-card {
+  position: relative;
   display: inline-flex; flex-direction: column; gap: .25rem;
   background: var(--paper); border: 3px solid var(--paper);
   box-shadow: 3px 3px 0 rgba(255,246,227,.3);
   padding: .5rem .85rem; cursor: pointer; color: var(--ink);
   transition: transform .12s, box-shadow .12s;
 }
+.cw-card-link {
+  text-decoration: none; color: inherit;
+  display: flex; flex-direction: column; gap: .25rem;
+}
+/* Stretch the link over the whole card so the padding stays clickable. */
+.cw-card-link::after { content: ''; position: absolute; inset: 0; }
 .cw-card:hover { transform: translate(-2px,-2px); box-shadow: 5px 5px 0 rgba(255,246,227,.4); }
 .cw-card-title { font-family: 'Rubik Mono One', sans-serif; font-size: .75rem; line-height: 1.2; }
 .cw-meta { display: flex; gap: .35rem; align-items: center; }
@@ -146,11 +154,17 @@ h1 {
 .ch-mini.tiji            { background: var(--sky); }
 .ch-mini.cartoon-network { background: var(--lime); color: var(--ink); }
 .cw-remove-btn {
+  position:absolute; top:-7px; right:-7px; z-index:1; /* above the stretched card link */
   width:18px; height:18px; border-radius:50%;
   background:var(--ink); color:var(--paper);
   border:2px solid var(--paper); font-size:.6rem;
   cursor:pointer; display:flex; align-items:center; justify-content:center;
   font-family:'VT323',monospace; line-height:1; padding:0;
+  opacity:0; transition:opacity .15s;
+}
+.cw-card:hover .cw-remove-btn { opacity:1; }
+@media (hover: none) {
+  .cw-remove-btn { opacity:1; }
 }
 
 /* ── CATALOG TOOLBAR ── */
@@ -259,6 +273,7 @@ h1 {
   cursor: pointer;
   display: flex; flex-direction: column; gap: .6rem;
   min-height: 100px;
+  text-decoration: none; color: inherit; /* cards are <a> elements */
 }
 .card:hover { transform: translate(-3px,-3px); box-shadow: 6px 6px 0 var(--ink); z-index: 2; }
 .card.hidden { display: none; }
@@ -355,6 +370,16 @@ h1 {
   color: var(--no-results-color); padding: 2.5rem 0; text-align: center; display: none;
 }
 .no-results.visible { display: block; }
+.no-results-link {
+  font-family: 'VT323', monospace; font-size: 1.2rem;
+  color: var(--no-results-color); text-decoration: none;
+  border-bottom: 1px dashed var(--no-results-color);
+}
+
+.grid-msg {
+  grid-column: 1/-1;
+  font-family: 'VT323', monospace; font-size: 1.1rem; opacity: .4;
+}
 
 /* ── FOOTER ── */
 footer {
@@ -364,6 +389,11 @@ footer {
 }
 footer .blink { animation: blink 1s steps(2) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
+.footer-link {
+  font-family: 'VT323', monospace; font-size: 1rem;
+  color: var(--ink); opacity: .4; text-decoration: none;
+  border-bottom: 1px dashed var(--ink);
+}
 
 /* ── BACK TO TOP ── */
 #back-top {

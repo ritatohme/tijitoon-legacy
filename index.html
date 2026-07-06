@@ -10,16 +10,16 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Tijitoon">
-<link rel="apple-touch-icon" href="/tijitoon/tijitoon-apple-touch-icon.png">
+<link rel="apple-touch-icon" href="/tijitoon/icons/tijitoon-apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Rubik+Mono+One&family=Space+Mono:wght@400;700&family=VT323&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
-<script src="theme-init.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" media="print" onload="this.media='all'">
-<link rel="stylesheet" href="index.css">
-<link rel="stylesheet" href="popup.css">
-<script>!function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);posthog.init('phc_BDNVoG4euWPyarqmdWDui5w76yXsWqyyzbgvYeNG6xEm',{api_host:'https://us.i.posthog.com',defaults:'2026-05-30',person_profiles:'identified_only'})</script>
+<link rel="stylesheet" href="css/styles.css">
+<script src="js/theme-init.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha384-/o6I2CkkWC//PSjvWC/eYN7l3xM3tJm8ZzVkCOfp//W05QcE3mlGskpoHB6XqI+B" crossorigin="anonymous" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="css/index.css">
+<link rel="stylesheet" href="css/popup.css">
+<script src="js/analytics.js" defer></script>
 </head>
 <body>
 
@@ -53,7 +53,7 @@
       <span id="meta-channels">&gt; … chaînes</span>
     </div>
 
-    <div style="position:relative;max-width:580px;padding-bottom:1.2rem;">
+    <div class="search-zone">
       <div class="search-wrap">
         <span class="search-prefix">&gt;&gt;</span>
         <input id="search-input" class="search-input" type="text"
@@ -105,7 +105,7 @@
 
     <!-- CARD GRID -->
     <div class="card-grid" id="card-grid">
-      <div style="grid-column:1/-1;font-family:'VT323',monospace;font-size:1.1rem;opacity:.4;">Chargement…</div>
+      <div class="grid-msg">Chargement…</div>
     </div>
 
     <!-- LIST VIEW -->
@@ -121,7 +121,7 @@
       </div>
     </div>
 
-    <div class="no-results" id="no-results">// aucun résultat_<br><a href="request" style="font-family:'VT323',monospace;font-size:1.2rem;color:var(--no-results-color);text-decoration:none;border-bottom:1px dashed var(--no-results-color);">faire une demande</a></div>
+    <div class="no-results" id="no-results">// aucun résultat_<br><a class="no-results-link" href="request">faire une demande</a></div>
 
   </div>
 </section>
@@ -131,29 +131,20 @@
   <div class="inner">
     &lt; FIN DE TRANSMISSION &gt; <span class="blink">_</span>
     <br><br>
-    <a href="disclaimer" style="font-family:'VT323',monospace;font-size:1rem;color:var(--ink);opacity:.4;text-decoration:none;border-bottom:1px dashed var(--ink);">mentions légales &amp; disclaimer</a>
+    <a class="footer-link" href="disclaimer">mentions légales &amp; disclaimer</a>
   </div>
 </footer>
 
-<button id="back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i class="fa-solid fa-arrow-up"></i> TOP</button>
+<button id="back-top"><i class="fa-solid fa-arrow-up"></i> TOP</button>
 
 <a href="request" id="req-tab">DEMANDE <i class="fa-solid fa-angle-right"></i></a>
 
-<script src="theme.js"></script>
-<script src="shared.js"></script>
-<script src="index.js"></script>
+<script src="js/theme.js"></script>
+<script src="js/shared.js"></script>
+<script src="js/index.js"></script>
 
-<!-- ══ REQUEST POPUP ═══════════════════════════════════════ -->
-<div id="req-include"></div>
-<script>
-  fetch('popup.html').then(r => r.text()).then(function(html) {
-    document.getElementById('req-include').innerHTML = html;
-  }).then(function() {
-    var s = document.createElement('script');
-    s.src = 'popup.js';
-    document.body.appendChild(s);
-  });
-</script>
+<!-- ══ ANNOUNCEMENT POPUP ══════════════════════════════════ -->
+<script src="js/announcement.js" defer></script>
 
 </body>
 </html>
