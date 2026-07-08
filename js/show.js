@@ -124,7 +124,8 @@ const ODYCDN_PROXY_URL    = CRIMSON_WORKER_URL + '/';
 const LOUDAPE_PROXY_URL   = 'https://loud-ape-44.roughrecipe.deno.net';
 const OJAMAJO_WORKER_URL  = 'https://rapid-lab-6552.ritaclifford95.workers.dev';
 const EMBED_WORKER_URL    = 'https://flaky-sturgeon-55.roughrecipe.deno.net';
-// abysscdn-worker-v2: streams AbyssCDN as seekable MP4.
+// abysscdn-worker-v2: streams AbyssCDN as seekable MP4 (?res= picks a resolution;
+// /abysscdn/sources lists them all for the quality gear).
 const ABYSSCDN_WORKER_URL = 'https://noisy-hill-3a3b.ritaclifford99.workers.dev';
 
 function odycdnProxyUrl(mp4Url) {
@@ -532,11 +533,15 @@ const EPISODE_LOADERS = {
       <a class="player-external-link" href="${esc(ep.url)}" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-play"></i> Regarder sur ${esc(epUrl.hostname)}</a>`;
   },
 
-  abysscdn({ ep, epUrl, seasonIdx }) {
-    // worker decrypts AbyssCDN and streams a seekable MP4 directly to <video>
+  abysscdn({ ep, epUrl, seasonIdx, gen }) {
+    // worker /sources returns { source, sources } with ready-to-play worker stream
+    // URLs (all qualities, highest first, 360p excluded) → quality gear, exactly
+    // like dessinanime.
     const v = epUrl.searchParams.get('v') || epUrl.pathname.split('/').pop();
     if (!v) { showNoVideo(ep, seasonIdx); return; }
-    playMp4(`${ABYSSCDN_WORKER_URL}/abysscdn?v=${encodeURIComponent(v)}`);
+    resolveAndPlay(gen, ep, seasonIdx,
+      `${ABYSSCDN_WORKER_URL}/abysscdn/sources?v=${encodeURIComponent(v)}`,
+      ({ source, sources }) => ({ sources, mp4: source }));
   },
 
   dessinanime({ ep, seasonIdx, gen }) {
