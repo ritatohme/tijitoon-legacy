@@ -11,10 +11,10 @@ const artContainer = document.getElementById('art-player');
 // big center play icon then shows while paused). Double-tap-play is turned off since
 // the second tap would instantly undo the first one. Trade-off: tapping just to peek
 // at the control bar also pauses — same as desktop. Must be set before any instance.
-if (typeof Artplayer === 'function') {
-  Artplayer.MOBILE_CLICK_PLAY = true;
-  Artplayer.MOBILE_DBCLICK_PLAY = false;
-}
+// if (typeof Artplayer === 'function') {
+//   Artplayer.MOBILE_CLICK_PLAY = true;
+//   Artplayer.MOBILE_DBCLICK_PLAY = false;
+// }
 
 let activeHls = null;   // hls.js instance owned by the current ArtPlayer (via art.hls)
 let activeArt = null;   // ArtPlayer instance for the current direct-video source
@@ -207,6 +207,7 @@ function playArt({ url, type, quality, hlsControl }) {
     url,
     type,
     setting: true,
+    volume: 1, // always start at 100% (overrides ArtPlayer's 0.7 default / last-saved value)
     playbackRate: true, // play-speed control in the gear settings menu
     pip: true, // Picture-in-Picture toggle, next to the fullscreen button
     fullscreen: true,
